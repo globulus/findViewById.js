@@ -1,0 +1,17 @@
+{
+  "name": "findViewById.js",
+  "version": "1.0.0",
+  "description": "A Node script that goes through Android XML layout files and extracts appropriate findViewById bindings.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node ./src/index.ts /Users/gordan/Documents/GitHub/winterfell/logbook/res/layout /Users/gordan/Documents/GitHub/winterfell/logbook/res/layout/output"
+  },
+  "author": "Gordan Glavaš",
+  "license": "MIT",
+  "dependencies": {
+    "xml-js": "^1.6.11"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.3"
+  }
+}
