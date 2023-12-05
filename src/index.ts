@@ -2,11 +2,29 @@
 
 import process from "process";
 import fs from "fs";
-import { Element, ElementCompact, xml2js } from "xml-js";
+import { Element, xml2js } from "xml-js";
 
 if (process.argv.length < 4 || !process.argv[2] || !process.argv[3]) {
-  console.error("Usage: ./index.ts path_to_layouts/ kt_output_path/");
+  console.error(
+    "Usage: ./index.ts path_to_layouts/ kt_output_path/ [-java|-kt]"
+  );
   process.exit(1);
+}
+
+type OutputType = "java" | "kt";
+let outputType: OutputType = "kt";
+if (process.argv.length === 5) {
+  switch (process.argv[4]) {
+    case "-java":
+      outputType = "java";
+      break;
+    case "-kt":
+      outputType = "kt";
+      break;
+    default:
+      console.log("Invalid output type, use -java or -kt!");
+      process.exit(1);
+  }
 }
 
 type AndroidViewInfo = {
@@ -51,17 +69,30 @@ for (const layoutFile of layoutFiles) {
   const jsonContent = xml2js(xmlContent, { compact: false }) as Element;
   const viewInfo = extractViewInfo(jsonContent);
   const declarations = viewInfo
-    .map((i) => `private lateinit var ${i.id}: ${i.className}`)
+    .map(({ className, id }) =>
+      outputType === "java"
+        ? `private ${className} ${id};`
+        : `private lateinit var ${id}: ${className}`
+    )
     .join("\n");
   const bindings = viewInfo
-    .map(({ id }) => `${id} = view.findViewById(R.id.${id})`)
+    .map(
+      ({ id }) =>
+        `${id} = view.findViewById(R.id.${id})${
+          outputType === "java" ? ";" : ""
+        }`
+    )
     .join("\n");
   fs.writeFileSync(
-    `${outputPath}/${layoutFile}.kt`,
+    `${outputPath}/${layoutFile}.${outputType}`,
     `
     ${declarations}
 
-    fun bindView(View view) {
+    ${
+      outputType === "java"
+        ? "private void bindView(View view)"
+        : "private fun bindView(view: View)"
+    } {
       ${bindings}
     }
   `
